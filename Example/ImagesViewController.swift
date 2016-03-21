@@ -49,9 +49,9 @@ class ImagesViewController: UIViewController {
     private func setUpInstanceProperties() {
         title = "Random Images"
 
-        for _ in 1...1_000 {
+        for i in 1...1_000 {
             let gravatar = Gravatar(
-                emailAddress: NSUUID().UUIDString,
+                emailAddress: "email\(i)",
                 defaultImage: Gravatar.DefaultImage.Identicon,
                 forceDefault: true
             )

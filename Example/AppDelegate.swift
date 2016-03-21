@@ -22,6 +22,8 @@
 
 import Foundation
 import UIKit
+import Alamofire
+import AlamofireImage
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -39,7 +41,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
             return window
         }()
+        
+        let sessionManager = Manager(configuration: NSURLSessionConfiguration.ephemeralSessionConfiguration())
+        let storage = FileImageStorage()
 
+        let downloader = PersistentImageDownloader(sessionManager: sessionManager, downloadPrioritization: .FIFO, maximumActiveDownloads: 4, imageCache: AutoPurgingImageCache(), imageStorage: storage)
+        
+//        UIImageView.af_sharedImageDownloader = downloader
+        
         return true
     }
 }

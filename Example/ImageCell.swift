@@ -73,4 +73,8 @@ class ImageCell : UICollectionViewCell {
         imageView.layer.removeAllAnimations()
         imageView.image = nil
     }
+    
+    deinit {
+        NSLog("cell dealloc")
+    }
 }

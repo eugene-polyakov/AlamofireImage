@@ -110,6 +110,8 @@ public class PersistentImageDownloader: ImageDownloader {
                 let storageResponse = storage.imageWithIdentifier(cacheKey, responder: { [weak self] image -> () in
                     guard let strongSelf = self else { return }
                     if let _image = image {
+                        request.cancel()
+                        request = nil
                         let responseHandler = strongSelf.safelyRemoveResponseHandlerWithIdentifier(identifier)
                         dispatch_sync(strongSelf.responseQueue, {
                             PersistentImageDownloader.processImageAndRespond(responseHandler, image: _image, request: URLRequest.URLRequest, response: nil, imageCache: strongSelf.imageCache)
@@ -168,15 +170,16 @@ public class PersistentImageDownloader: ImageDownloader {
                 completionHandler: { [weak self] response in
                     guard let strongSelf = self, let request = response.request else { return }
                     
-                    let responseHandler = strongSelf.safelyRemoveResponseHandlerWithIdentifier(identifier)
+                    if let responseHandler = strongSelf.safelyRemoveExistingResponseHandlerWithIdentifier(identifier) {
                     
-                    switch response.result {
-                    case .Success(let image):
-                        PersistentImageDownloader.processImageAndRespond(responseHandler, image: image, request: request, response: response, imageCache: self?.imageCache)
-                        strongSelf.imageStorage?.addImage(image, withIdentifier: identifier)
-                    case .Failure:
-                        for (_, _, completion) in responseHandler.operations {
-                            dispatch_async(dispatch_get_main_queue()) { completion?(response) }
+                        switch response.result {
+                        case .Success(let image):
+                            PersistentImageDownloader.processImageAndRespond(responseHandler, image: image, request: request, response: response, imageCache: self?.imageCache)
+                            strongSelf.imageStorage?.addImage(image, withIdentifier: identifier)
+                        case .Failure:
+                            for (_, _, completion) in responseHandler.operations {
+                                dispatch_async(dispatch_get_main_queue()) { completion?(response) }
+                            }
                         }
                     }
                     
@@ -246,5 +249,16 @@ public class PersistentImageDownloader: ImageDownloader {
         super.cancelRequestForRequestReceipt(requestReceipt)
         imageStorage?.cancelLoadForID(requestReceipt.receiptID)
     }
+    
+    func safelyRemoveExistingResponseHandlerWithIdentifier(identifier: String) -> ResponseHandler? {
+        var responseHandler: ResponseHandler!
+        
+        dispatch_sync(synchronizationQueue) {
+            responseHandler = self.responseHandlers.removeValueForKey(identifier)
+        }
+        
+        return responseHandler
+    }
+
 
 }

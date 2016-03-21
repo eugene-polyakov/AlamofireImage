@@ -45,9 +45,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let sessionManager = Manager(configuration: NSURLSessionConfiguration.ephemeralSessionConfiguration())
         let storage = FileImageStorage()
 
-        let downloader = PersistentImageDownloader(sessionManager: sessionManager, downloadPrioritization: .FIFO, maximumActiveDownloads: 4, imageCache: AutoPurgingImageCache(), imageStorage: storage)
+        let downloader = PersistentImageDownloader(sessionManager: sessionManager, downloadPrioritization: .FIFO, maximumActiveDownloads: 4, imageCache: nil, imageStorage: storage)
         
-//        UIImageView.af_sharedImageDownloader = downloader
+        UIImageView.af_sharedImageDownloader = downloader
         
         return true
     }
